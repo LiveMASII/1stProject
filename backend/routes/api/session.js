@@ -21,6 +21,7 @@ const validateLogin = [
 router.post('/', validateLogin, async (req, res, next) => {
   const { credential, password } = req.body;
 
+  // Fetch user, unscoped to include all fields
   const user = await User.unscoped().findOne({
     where: {
       [Op.or]: {
@@ -38,21 +39,25 @@ router.post('/', validateLogin, async (req, res, next) => {
     return next(err);
   }
 
+  // Include `firstName` and `lastName` in the safeUser object
   const safeUser = {
     id: user.id,
     email: user.email,
     username: user.username,
+    firstName: user.firstName, // Assuming this exists in the database
+    lastName: user.lastName,  // Assuming this exists in the database
   };
 
+  // Set the token cookie
   await setTokenCookie(res, safeUser);
 
   return res.json({
-    user: safeUser,
+    user: safeUser, // Include updated safeUser with firstName and lastName
   });
 });
 
 router.delete('/', (_req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token');  
   return res.json({ message: 'success' });
 });
 

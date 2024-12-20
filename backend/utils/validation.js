@@ -13,11 +13,12 @@ const handleValidationErrors = (req, _res, next) => {
     err.errors = errors;
     err.status = 400;
     err.title = "Bad request.";
-    next(err);
+    return next(err); // Ensure the error is passed immediately
   }
-  next();
+
+  return next(); // If no validation errors, continue to the next middleware
 };
 
 module.exports = {
-    handleValidationErrors
-  };
+  handleValidationErrors
+};
