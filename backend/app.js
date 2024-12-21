@@ -5,19 +5,20 @@ const cors = require('cors');
 const csurf = require('csurf');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const { ValidationError } = require('sequelize');
-const { restoreUser } = require('./utils/auth'); 
-
+const { restoreUser } = require('./utils/auth');
 const { environment } = require('./config');
-const isProduction = environment === 'production';
+const routes = require('./routes'); // Import the routes file
+const spotsRouter = require('./routes/api/spots');
 
 const app = express();
 
-const routes = require('./routes');
+const isProduction = environment === 'production';
 
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
+app.use('/api/spots', spotsRouter);
+
 
 if (!isProduction) {
   app.use(cors());
@@ -41,8 +42,10 @@ app.use(
   })
 );
 
+// Use the routes
 app.use(routes);
 
+// Catch-all handler for 404 errors if route is not found
 app.use((_req, _res, next) => {
   const err = new Error("The requested resource couldn't be found.");
   err.title = 'Resource Not Found';
@@ -51,6 +54,7 @@ app.use((_req, _res, next) => {
   next(err);
 });
 
+// Validation and general error handling
 app.use((err, _req, _res, next) => {
   if (err instanceof ValidationError) {
     let errors = {};
@@ -63,6 +67,7 @@ app.use((err, _req, _res, next) => {
   next(err);
 });
 
+// Final error handler for sending the error response
 app.use((err, _req, res, _next) => {
   res.status(err.status || 500);
   console.error(err);
