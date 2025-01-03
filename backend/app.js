@@ -7,8 +7,12 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { restoreUser } = require('./utils/auth');
 const { environment } = require('./config');
-const routes = require('./routes'); // Import the routes file
-const spotsRouter = require('./routes/api/spots');
+const { ValidationError } = require('sequelize');  
+const routes = require('./routes');  
+const spotsRouter = require('./routes/api/spots');  
+const reviewsRouter = require('./routes/api/reviews');  // <-- Import reviews router
+const bookingsRouter = require('./routes/api/bookings');
+
 
 const app = express();
 
@@ -17,8 +21,11 @@ const isProduction = environment === 'production';
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
-app.use('/api/spots', spotsRouter);
 
+// Register Routes
+app.use('/api', bookingsRouter);
+app.use('/api/spots', spotsRouter);
+app.use('/api/spots', reviewsRouter);
 
 if (!isProduction) {
   app.use(cors());
@@ -42,7 +49,6 @@ app.use(
   })
 );
 
-// Use the routes
 app.use(routes);
 
 // Catch-all handler for 404 errors if route is not found

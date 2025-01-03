@@ -16,6 +16,7 @@ module.exports = {
           key: 'id',
         },
         onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'  // Ensure cascading updates
       },
       userId: {
         type: Sequelize.INTEGER,
@@ -25,10 +26,15 @@ module.exports = {
           key: 'id',
         },
         onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'  // Ensure cascading updates
       },
       stars: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        validate: {
+          min: 1,
+          max: 5
+        }
       },
       review: {
         type: Sequelize.TEXT,
