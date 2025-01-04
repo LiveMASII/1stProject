@@ -4,7 +4,6 @@ const { requireAuth } = require('../../utils/auth');
 const router = express.Router();
 const { Op } = require('sequelize');
 
-// GET all bookings of the current user
 router.get('/session/bookings', requireAuth, async (req, res) => {
   const userId = req.user.id;
 
@@ -39,7 +38,7 @@ router.get('/session/bookings', requireAuth, async (req, res) => {
         lng: booking.Spot.lng,
         name: booking.Spot.name,
         price: booking.Spot.price,
-        previewImage: 'image url' // Replace with actual logic to get preview image if needed
+        previewImage: 'image url'
       }
     }));
 
@@ -53,7 +52,6 @@ router.get('/session/bookings', requireAuth, async (req, res) => {
   }
 });
 
-// Create a booking for a Spot
 router.post('/:spotId', requireAuth, async (req, res) => {
   const { spotId } = req.params;
   const { startDate, endDate } = req.body;
@@ -68,21 +66,18 @@ router.post('/:spotId', requireAuth, async (req, res) => {
       });
     }
 
-    // Check if the spot owner is the current user
     if (spot.ownerId === userId) {
       return res.status(400).json({
         message: "You can't book your own spot",
       });
     }
 
-    // Validate booking dates
     if (startDate >= endDate) {
       return res.status(400).json({
         message: 'Start date must be before end date',
       });
     }
 
-    // Create the booking
     const booking = await Booking.create({
       spotId,
       userId,
@@ -107,7 +102,6 @@ router.post('/:spotId', requireAuth, async (req, res) => {
   }
 });
 
-// Get all bookings for a Spot by Spot ID
 router.get('/:spotId/bookings', requireAuth, async (req, res) => {
   const { spotId } = req.params;
   const userId = req.user.id;
@@ -169,7 +163,6 @@ router.get('/:spotId/bookings', requireAuth, async (req, res) => {
   }
 });
 
-// Update an existing booking (PUT /api/bookings/:bookingId)
 router.put('/:bookingId', requireAuth, async (req, res) => {
   const { bookingId } = req.params;
   const { startDate, endDate } = req.body;
@@ -267,7 +260,6 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
   }
 });
 
-// Delete a booking (DELETE /api/bookings/:bookingId)
 router.delete('/:bookingId', requireAuth, async (req, res) => {
   const { bookingId } = req.params;
   const userId = req.user.id;
@@ -281,14 +273,12 @@ router.delete('/:bookingId', requireAuth, async (req, res) => {
       });
     }
 
-    // Check if the current user is the owner of the booking or the owner of the spot
     if (booking.userId !== userId && booking.Spot.ownerId !== userId) {
       return res.status(403).json({
         message: "You do not have permission to delete this booking"
       });
     }
 
-    // Check if the booking has started
     const today = new Date();
     if (new Date(booking.startDate) <= today) {
       return res.status(403).json({
@@ -296,7 +286,6 @@ router.delete('/:bookingId', requireAuth, async (req, res) => {
       });
     }
 
-    // Delete the booking
     await booking.destroy();
 
     return res.status(200).json({

@@ -16,7 +16,7 @@ module.exports = {
           key: 'id',
         },
         onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'  // Ensure cascading updates
+        onUpdate: 'CASCADE' 
       },
       userId: {
         type: Sequelize.INTEGER,
@@ -26,7 +26,7 @@ module.exports = {
           key: 'id',
         },
         onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'  // Ensure cascading updates
+        onUpdate: 'CASCADE'  
       },
       stars: {
         type: Sequelize.INTEGER,

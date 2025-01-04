@@ -4,7 +4,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('Spots', [
       {
-        ownerId: 1,  // Ensure this matches the ID of the first user
+        ownerId: 1, 
         address: '123 Disney Lane',
         city: 'San Francisco',
         state: 'California',

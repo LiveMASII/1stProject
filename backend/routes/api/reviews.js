@@ -37,7 +37,6 @@ router.get('/:spotId/reviews', async (req, res) => {
   }
 });
 
-// POST route to create a review for a spot
 router.post('/:spotId/reviews', requireAuth, async (req, res) => {
   const { spotId } = req.params;
   const { review, stars } = req.body;
@@ -99,7 +98,6 @@ router.post('/:spotId/reviews', requireAuth, async (req, res) => {
   }
 });
 
-// POST route to add an image to a review
 router.post('/:reviewId/images', requireAuth, async (req, res) => {
   const { reviewId } = req.params;
   const { url } = req.body;
@@ -153,7 +151,6 @@ router.post('/:reviewId/images', requireAuth, async (req, res) => {
   }
 });
 
-// PUT route to edit a review by ID
 router.put('/:reviewId', requireAuth, async (req, res) => {
   const { reviewId } = req.params;
   const { review, stars } = req.body;
@@ -201,7 +198,6 @@ router.put('/:reviewId', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE route to delete a review by ID
 router.delete('/:reviewId', requireAuth, async (req, res) => {
   const { reviewId } = req.params;
   const userId = req.user.id;
@@ -233,7 +229,6 @@ router.delete('/:reviewId', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE route to delete an image for a review
 router.delete('/:reviewId/images/:imageId', requireAuth, async (req, res) => {
   const { reviewId, imageId } = req.params;
 
@@ -246,14 +241,12 @@ router.delete('/:reviewId/images/:imageId', requireAuth, async (req, res) => {
       });
     }
 
-    // Check if the review belongs to the current user
     if (review.userId !== req.user.id) {
       return res.status(403).json({
         message: 'You do not have permission to delete this image',
       });
     }
 
-    // Find the review image by ID
     const reviewImage = await ReviewImage.findByPk(imageId);
     if (!reviewImage) {
       return res.status(404).json({
@@ -261,10 +254,8 @@ router.delete('/:reviewId/images/:imageId', requireAuth, async (req, res) => {
       });
     }
 
-    // Delete the review image
     await reviewImage.destroy();
 
-    // Return success response
     return res.status(200).json({
       message: 'Successfully deleted',
     });

@@ -2,7 +2,7 @@
 
 let options = {};
 if (process.env.NODE_ENV === 'production') {
-  options.schema = process.env.SCHEMA;  // define your schema in options object
+  options.schema = process.env.SCHEMA;  
 }
 
 module.exports = {
@@ -28,13 +28,13 @@ module.exports = {
         type: Sequelize.STRING.BINARY,
         allowNull: false
       },
-      firstName: {  // Add firstName field
+      firstName: {  
         type: Sequelize.STRING,
-        allowNull: true,  // Optional, set to true if not required
+        allowNull: true,  
       },
-      lastName: {  // Add lastName field
+      lastName: { 
         type: Sequelize.STRING,
-        allowNull: true,  // Optional, set to true if not required
+        allowNull: true,  
       },
       createdAt: {
         allowNull: false,

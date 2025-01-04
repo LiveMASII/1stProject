@@ -4,8 +4,8 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('Reviews', [
       {
-        spotId: 1,  // This spot must exist in the Spots table
-        userId: 1,  // Match the first user created by the Users seeder
+        spotId: 1, 
+        userId: 1, 
         review: 'Amazing spot!',
         stars: 5,
         createdAt: new Date(),
