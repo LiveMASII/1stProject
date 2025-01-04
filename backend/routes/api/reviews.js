@@ -233,4 +233,48 @@ router.delete('/:reviewId', requireAuth, async (req, res) => {
   }
 });
 
+// DELETE route to delete an image for a review
+router.delete('/:reviewId/images/:imageId', requireAuth, async (req, res) => {
+  const { reviewId, imageId } = req.params;
+
+  try {
+    // Find the review by ID
+    const review = await Review.findByPk(reviewId);
+    if (!review) {
+      return res.status(404).json({
+        message: "Review couldn't be found"
+      });
+    }
+
+    // Check if the review belongs to the current user
+    if (review.userId !== req.user.id) {
+      return res.status(403).json({
+        message: 'You do not have permission to delete this image',
+      });
+    }
+
+    // Find the review image by ID
+    const reviewImage = await ReviewImage.findByPk(imageId);
+    if (!reviewImage) {
+      return res.status(404).json({
+        message: "Review Image couldn't be found"
+      });
+    }
+
+    // Delete the review image
+    await reviewImage.destroy();
+
+    // Return success response
+    return res.status(200).json({
+      message: 'Successfully deleted',
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: 'Something went wrong',
+      error: error.message,
+    });
+  }
+});
+
 module.exports = router;
