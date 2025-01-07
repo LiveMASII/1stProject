@@ -25,13 +25,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING.BINARY,
         allowNull: false,
       },
-      firstName: {  // Add firstName field
+      firstName: {
         type: DataTypes.STRING,
-        allowNull: true,  // Optional, set to true if not required
+        allowNull: true,
       },
-      lastName: {  // Add lastName field
+      lastName: {
         type: DataTypes.STRING,
-        allowNull: true,  // Optional, set to true if not required
+        allowNull: true,
       }
     },
     {
@@ -40,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultScope: {
         attributes: { exclude: ['hashedPassword', 'email', 'createdAt', 'updatedAt'] },
       },
+      schema: process.env.SCHEMA || 'public' 
     }
   );
   return User;

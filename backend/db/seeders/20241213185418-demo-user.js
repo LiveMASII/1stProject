@@ -1,6 +1,6 @@
 'use strict';
 
-const { User } = require('../models');
+const { User } = require('../models');  // Make sure this path is correct
 const bcrypt = require("bcryptjs");
 
 let options = {};
@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = {
-  async up (queryInterface, Sequelize) {
+  async up(queryInterface, Sequelize) {
     await User.bulkCreate([
       {
         email: 'demo@user.io',
@@ -35,7 +35,7 @@ module.exports = {
     ], { validate: true });
   },
 
-  async down (queryInterface, Sequelize) {
+  async down(queryInterface, Sequelize) {
     options.tableName = 'Users';
     const Op = Sequelize.Op;
     return queryInterface.bulkDelete(options, {
