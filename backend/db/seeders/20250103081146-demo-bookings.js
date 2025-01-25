@@ -1,20 +1,49 @@
 'use strict';
 
+const { Booking, User, Spot } = require('../models');
+//^Import data
+const bookinData = require('../data/bookingData');
+//^Import shuffler
+const shuffleArray = require('../data/utils/shuffle');
+
+let options = {};
+if (process.env.NODE_ENV === 'production') {
+  options.schema = process.env.SCHEMA;  // define your schema in options object
+}
+
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('Bookings', [
-      {
-        spotId: 1,
-        userId: 2,
-        startDate: '2021-11-19',
-        endDate: '2021-11-20',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ]);
+  async up (queryInterface, Sequelize) {
+    try {
+      const users = await User.findAll();
+      const spots = await Spot.findAll();
+
+      shuffleArray(users);
+      shuffleArray(spots);
+
+      bookinData.forEach((booking, index) => {
+        let userId  = users[index % users.length].id; //! allows loop wrapping
+        let spot = spots[index % spots.length];
+
+        //! check user is not booking own spot
+        while (userId === spot.ownerId) {
+          //! get next user
+          index = (index + 1) % users.length;
+          userId = users[index].id;
+        }
+
+        booking.userId = userId;
+        booking.spotId = spot.id;
+      });
+
+      await Booking.bulkCreate(bookinData, { validate: true });
+    } catch (error) {
+      console.error('Error seeding bookings', error);
+    }
   },
 
-  down: async (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('Bookings', null, {});
+  async down (queryInterface, Sequelize) {
+    options.tableName = 'Bookings';
+    await queryInterface.bulkDelete(options);
   }
 };

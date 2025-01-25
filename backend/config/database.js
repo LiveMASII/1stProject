@@ -1,3 +1,8 @@
+//^ backend/config/database.js
+
+//! This will allow you to load the database configuration
+//! environment variables from the .env file into the config/index.js,
+//! as well as define the global schema for the project.
 
 const config = require('./index');
 
@@ -9,7 +14,6 @@ module.exports = {
     logQueryParameters: true,
     typeValidation: true
   },
-  
   production: {
     use_env_variable: 'DATABASE_URL',
     dialect: 'postgres',
@@ -21,8 +25,7 @@ module.exports = {
       }
     },
     define: {
-      schema: process.env.SCHEMA || 'public'
+      schema: process.env.SCHEMA
     }
   }
 };
-  

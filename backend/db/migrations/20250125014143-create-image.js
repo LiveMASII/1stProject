@@ -8,33 +8,28 @@ if (process.env.NODE_ENV === 'production') {
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable('Images', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      firstName: {
-        type: Sequelize.STRING(100),
+      url: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      preview: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+      },
+      imageableId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      lastName: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
-      },
-      email: {
-        type: Sequelize.STRING(256),
-        allowNull: false,
-        unique: true
-      },
-      username: {
-        type: Sequelize.STRING(30),
-        allowNull: false,
-        unique: true
-      },
-      hashedPassword: {
-        type: Sequelize.STRING.BINARY,
+      imageableType: {
+        type: Sequelize.STRING,
         allowNull: false
       },
       createdAt: {
@@ -50,6 +45,6 @@ module.exports = {
     }, options);
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users', options);
+    await queryInterface.dropTable('Images', options);
   }
 };

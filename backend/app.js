@@ -1,3 +1,4 @@
+// ^ backend/app.js
 const express = require('express');
 require('express-async-errors');
 const morgan = require('morgan');
@@ -5,63 +6,60 @@ const cors = require('cors');
 const csurf = require('csurf');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const { restoreUser } = require('./utils/auth');
-const { environment } = require('./config');
-const { ValidationError } = require('sequelize');  
-const routes = require('./routes');  
-const spotsRouter = require('./routes/api/spots');  
-const reviewsRouter = require('./routes/api/reviews');  // <-- Import reviews router
-const bookingsRouter = require('./routes/api/bookings');
+const routes = require('./routes');
+const { ValidationError } = require('sequelize');
 
+const { environment } = require('./config');
+const isProduction = environment === 'production';
 
 const app = express();
 
-const isProduction = environment === 'production';
-
 app.use(morgan('dev'));
+
 app.use(cookieParser());
 app.use(express.json());
 
-// Register Routes
-app.use('/api', bookingsRouter);
-app.use('/api/spots', spotsRouter);
-app.use('/api/spots', reviewsRouter);
 
+
+//! Security Middleware
 if (!isProduction) {
-  app.use(cors());
-}
+    //! enable cors only in development
+    app.use(cors());
+  }
 
-app.use(
-  helmet.crossOriginResourcePolicy({
-    policy: 'cross-origin',
-  })
-);
+  //! helmet helps set a variety of headers to better secure your app
+  app.use(
+    helmet.crossOriginResourcePolicy({
+      policy: "cross-origin"
+    })
+  );
 
-app.use(restoreUser);
+  //! Set the _csrf token and create req.csrfToken method
+  app.use(
+    csurf({
+      cookie: {
+        secure: isProduction,
+        sameSite: isProduction && "Lax",
+        httpOnly: true
+      }
+    })
+  );
 
-app.use(
-  csurf({
-    cookie: {
-      secure: isProduction,
-      sameSite: isProduction && 'Lax',
-      httpOnly: true,
-    },
-  })
-);
-
+//! Connect all the routes
 app.use(routes);
 
-// Catch-all handler for 404 errors if route is not found
+//! Catch unhandled requests and forward to error handler.
 app.use((_req, _res, next) => {
   const err = new Error("The requested resource couldn't be found.");
-  err.title = 'Resource Not Found';
+  err.title = "Resource Not Found";
   err.errors = { message: "The requested resource couldn't be found." };
   err.status = 404;
   next(err);
 });
 
-// Validation and general error handling
+//! Process sequelize errors
 app.use((err, _req, _res, next) => {
+  //! check if error is a Sequelize error:
   if (err instanceof ValidationError) {
     let errors = {};
     for (let error of err.errors) {
@@ -73,7 +71,7 @@ app.use((err, _req, _res, next) => {
   next(err);
 });
 
-// Final error handler for sending the error response
+//! Error formatter
 app.use((err, _req, res, _next) => {
   res.status(err.status || 500);
   console.error(err);
@@ -81,8 +79,10 @@ app.use((err, _req, res, _next) => {
     title: err.title || 'Server Error',
     message: err.message,
     errors: err.errors,
-    stack: isProduction ? null : err.stack,
+    stack: isProduction ? null : err.stack
   });
 });
 
-module.exports = app;
+
+
+  module.exports = app;

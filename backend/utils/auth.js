@@ -1,81 +1,71 @@
+//^ backend/utils/auth.js
 const jwt = require('jsonwebtoken');
 const { jwtConfig } = require('../config');
 const { User } = require('../db/models');
-const csrf = require('csurf'); // Ensure this is required only once at the top
 
 const { secret, expiresIn } = jwtConfig;
 
-// Updated setTokenCookie function with debugging
+//~ This function will be used in the login and signup routes
+//! Sends a JWT Cookie
 const setTokenCookie = (res, user) => {
-    // Create a safe user object to store in the token
+    //! Create the token.
     const safeUser = {
       id: user.id,
       email: user.email,
       username: user.username,
     };
-
-    // Generate the JWT token
     const token = jwt.sign(
       { data: safeUser },
       secret,
-      { expiresIn: parseInt(expiresIn) }
+      { expiresIn: parseInt(expiresIn) } //! 604,800 seconds = 1 week
     );
-
-    // Log the generated JWT token for debugging purposes
-    console.log("Generated JWT Token:", token);
 
     const isProduction = process.env.NODE_ENV === "production";
 
-    // Set the token cookie in the response
+    //! Set the token cookie
     res.cookie('token', token, {
-      maxAge: expiresIn * 1000, // Set cookie expiration time
-      httpOnly: true,  // Make sure cookie is not accessible via JavaScript
-      secure: isProduction,  // Use only in HTTPS for production
-      sameSite: isProduction && "Lax"  // Prevent cross-site issues in production
+      maxAge: expiresIn * 1000, //! maxAge in milliseconds
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction && "Lax"
     });
 
-    // Now set CSRF token in a separate cookie (optional)
-    const csrfToken = csrf();  // This generates a CSRF token
-    res.cookie('XSRF-TOKEN', csrfToken, {
-      maxAge: expiresIn * 1000,  // Same expiration as JWT
-      httpOnly: false,  // This allows the frontend to access it
-      secure: isProduction,  // Use only in HTTPS for production
-      sameSite: isProduction && "Lax"  // Prevent cross-site issues in production
-    });
-
-    // Return the token
     return token;
-};
+  };
 
-// Restore user from the token
+//~ The restoreUser middleware will be connected to the API router
+//~ so that all API route handlers will check if there is a current user logged in or not.
 const restoreUser = (req, res, next) => {
-    const { token } = req.cookies;
-    req.user = null;
+//! token parsed from cookies
+const { token } = req.cookies;
+req.user = null;
 
-    return jwt.verify(token, secret, null, async (err, jwtPayload) => {
-      if (err) {
-        return next();
-      }
+return jwt.verify(token, secret, null, async (err, jwtPayload) => {
+    if (err) {
+    return next();
+    }
 
-      try {
-        const { id } = jwtPayload.data;
-        req.user = await User.findByPk(id, {
-          attributes: {
-            include: ['email', 'createdAt', 'updatedAt']
-          }
-        });
-      } catch (e) {
-        res.clearCookie('token');
-        return next();
-      }
-
-      if (!req.user) res.clearCookie('token');
-
-      return next();
+    try {
+    const { id } = jwtPayload.data;
+    req.user = await User.findByPk(id, {
+        attributes: {
+        include: ['email', 'createdAt', 'updatedAt']
+        }
     });
+    } catch (e) {
+    res.clearCookie('token');
+    return next();
+    }
+
+    if (!req.user) res.clearCookie('token');
+
+    return next();
+  });
 };
 
-// Ensure user is authenticated for certain routes
+//~ requireAuth will be connected directly to route handlers where there needs to be a
+//~ current user logged in for the actions in those route handlers.
+//! If there is no current user, return an error
 const requireAuth = function (req, _res, next) {
     if (req.user) return next();
 
@@ -84,6 +74,25 @@ const requireAuth = function (req, _res, next) {
     err.errors = { message: 'Authentication required' };
     err.status = 401;
     return next(err);
+}
+
+//~ ownership aka authorization middleware
+const checkOwnership = (model, paramId, ownershipField = 'ownerId') => {
+  return async (req, res, next) => {
+    const id  =  req.params[paramId];
+    const resource = await model.findByPk(id);
+
+    if (!resource) {
+      return res.status(404).json({ message: `${model.name} couldn't be found` });
+    };
+
+    if (resource[ownershipField] !== req.user.id) {
+      return res.status(403).json({ message: `Forbidden` })
+    };
+
+    next();
+  };
 };
 
-module.exports = { setTokenCookie, restoreUser, requireAuth };
+
+module.exports = { setTokenCookie, restoreUser, requireAuth, checkOwnership };
