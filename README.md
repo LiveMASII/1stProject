@@ -1,6 +1,6 @@
 # `MASIIProject#1`
 
-## Database Schema Design https://marc-auth-me.onrender.com
+## Database Schema Design https://marc-auth-me-db.onrender.com
 
 ![db-schema](images/schema.png)
 
