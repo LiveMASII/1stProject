@@ -1,4 +1,3 @@
-
 const bookings = [
   {
   userId: null,
